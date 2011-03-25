@@ -5,14 +5,17 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector.OnGestureListener;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
 public class GestureDebugView extends View implements OnGestureListener {
     private static final String TAG = GestureDebugView.class.getSimpleName();
+    private GestureDetector     detector;
 
     public GestureDebugView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -31,6 +34,12 @@ public class GestureDebugView extends View implements OnGestureListener {
 
     private void init() {
         setBackgroundColor(R.color.white);
+        detector = new GestureDetector(getContext(), this);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return detector.onTouchEvent(event);
     }
 
     @Override
@@ -54,7 +63,23 @@ public class GestureDebugView extends View implements OnGestureListener {
     private Path pathSE;
     private Path pathE;
 
-    private Dir  activeDir = Dir.NONE;
+    public static class Line {
+        public Point   pointA  = new Point(0, 0);
+        public Point   pointB  = new Point(0, 0);
+        public boolean visible = false;
+
+        public void updatePointA(MotionEvent e) {
+            pointA.x = (int) e.getX();
+            pointA.y = (int) e.getY();
+        }
+
+        public void updatePointB(MotionEvent e) {
+            pointB.x = (int) e.getX();
+            pointB.y = (int) e.getY();
+        }
+    }
+
+    private Dir activeDir = Dir.NONE;
 
     private void calculateTextLocations(int width, int height) {
         int size = 50;
@@ -124,10 +149,16 @@ public class GestureDebugView extends View implements OnGestureListener {
         backgroundPaint = new Paint();
         backgroundPaint.setColor(Color.WHITE);
         backgroundPaint.setStyle(Paint.Style.FILL);
+
+        dragPaint = new Paint();
+        dragPaint.setColor(Color.BLUE);
+        dragPaint.setStrokeWidth(3.0f);
     }
 
     private Paint highlightPaint  = new Paint();
     private Paint backgroundPaint = new Paint();
+    private Paint dragPaint       = new Paint();
+    private Line  dragline        = new Line();
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -160,6 +191,10 @@ public class GestureDebugView extends View implements OnGestureListener {
                 break;
         }
 
+        if (dragline.visible) {
+            canvas.drawLine(dragline.pointA.x, dragline.pointA.y, dragline.pointB.x, dragline.pointB.y, dragPaint);
+        }
+
         super.onDraw(canvas);
     }
 
@@ -176,8 +211,16 @@ public class GestureDebugView extends View implements OnGestureListener {
     public boolean onDown(MotionEvent e) {
         Log.i(TAG, "onDown(" + dump(e) + ")");
         this.activeDir = Dir.NONE;
+        dragline.updatePointA(e);
+        dragline.visible = false;
+        updateLastPoint(e);
         invalidate();
-        return false;
+        return true;
+    }
+
+    private void updateLastPoint(MotionEvent e) {
+        lastPoint.x = (int) e.getX();
+        lastPoint.y = (int) e.getY();
     }
 
     @Override
@@ -188,15 +231,23 @@ public class GestureDebugView extends View implements OnGestureListener {
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
         Log.i(TAG, "onSingleTapUp(" + dump(e) + ")");
-        return false;
+        dragline.visible = false;
+        return true;
     }
+
+    private Point lastPoint = new Point();
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        Log.i(TAG, "onScroll(" + dump(e1) + ", " + dump(e2) + ", " + distanceX + ", " + distanceY + ")");
-        this.activeDir = Dir.asDir(distanceX * (-1), distanceY * (-1), false);
+        // Log.i(TAG, "onScroll(" + dump(e1) + ", " + dump(e2) + ", " + distanceX + ", " + distanceY + ")");
+        float deltaX = (-1) * (lastPoint.x - e2.getX());
+        float deltaY = (lastPoint.y - e2.getY());
+        this.activeDir = Dir.asDir(deltaX, deltaY);
+        dragline.updatePointB(e2);
+        dragline.visible = true;
+        updateLastPoint(e2);
         invalidate();
-        return false;
+        return true;
     }
 
     @Override
@@ -208,7 +259,7 @@ public class GestureDebugView extends View implements OnGestureListener {
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         Log.i(TAG, "onFling(" + dump(e1) + ", " + dump(e2) + ", " + velocityX + ", " + velocityY + ")");
-        this.activeDir = Dir.asDir(velocityX, velocityY, true);
+        this.activeDir = Dir.asDir(velocityX, velocityY);
         invalidate();
         return false;
     }

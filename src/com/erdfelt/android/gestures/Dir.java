@@ -1,54 +1,26 @@
 package com.erdfelt.android.gestures;
 
-import android.util.Log;
-import android.view.ViewConfiguration;
-
-
 public enum Dir {
     NONE, NW, N, NE, E, SE, S, SW, W;
-    
-    public static Dir asDir(float deltaX, float deltaY, boolean sloppy) {
-        int x = Math.round(deltaX);
-        int y = Math.round(deltaY);
 
-        if (sloppy) {
-            if (Math.abs(x) < ViewConfiguration.getTouchSlop()) {
-                x = 0;
-            }
-            if (Math.abs(y) < ViewConfiguration.getTouchSlop()) {
-                y = 0;
-            }
+    private static final Dir zones[] = new Dir[] { Dir.E, Dir.NE, Dir.N, Dir.NW, Dir.W, Dir.SW, Dir.S, Dir.SE };
+
+    public static Dir asDir(double deltaX, double deltaY) {
+        double degrees = calcDegrees(deltaX, deltaY);
+        int n = (int) (degrees + (45 / 2));
+        int z = (n / 45);
+        if (z == 8) {
+            z = 0;
         }
-        
-        Dir dir = NONE;
-
-        if (y > 0) {
-            dir = S;
-        } else if (y < 0) {
-            dir = N;
-        }
-
-        if (x > 0) {
-            if (dir == S) {
-                dir = SE;
-            } else if (dir == N) {
-                dir = NE;
-            } else {
-                dir = E;
-            }
-        } else if (x < 0) {
-            if (dir == S) {
-                dir = SW;
-            } else if (dir == N) {
-                dir = NW;
-            } else {
-                dir = W;
-            }
-        }
-        
-        // Log.i("Dir", "asDir(x=" + deltaX + "->" + x + ", y=" + deltaY + "->" + y + ") = " + dir);
-
-        return dir;
+        return zones[z];
     }
 
+    public static double calcDegrees(double x, double y) {
+        double radians = Math.atan2(y, x);
+        double degrees = (radians * (180 / Math.PI));
+        if (degrees < 0.0) {
+            degrees = 360 - ((-1) * degrees);
+        }
+        return degrees;
+    }
 }
