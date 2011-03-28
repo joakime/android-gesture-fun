@@ -257,7 +257,7 @@ public class NavDebugView extends View implements OnNavListener {
 
     @Override
     public boolean onDrag(MotionEvent dragStart, MotionEvent dragNow, Dir dir) {
-        Log.i(TAG, "onDrag(" + dragStart + ", " + dragNow + ", " + dir + ")");
+        // Log.i(TAG, "onDrag(" + dragStart + ", " + dragNow + ", " + dir + ")");
         dragline.updatePointB(dragNow);
         activeDir = dir;
         updateLastPoint(dragNow);

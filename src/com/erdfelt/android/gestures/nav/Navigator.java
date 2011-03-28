@@ -117,12 +117,6 @@ public class Navigator {
     }
 
     private boolean isDoubleTap(MotionEvent firstDown, MotionEvent firstUp, MotionEvent secondDown) {
-        Log.d(TAG, "isDoubleTap()");
-        Log.d(TAG, "  .firstDown  = " + firstDown);
-        Log.d(TAG, "  .firstUp    = " + firstUp);
-        Log.d(TAG, "  .secondDown = " + secondDown);
-        Log.d(TAG, "  .insideDoubleSlop = " + insideDoubleSlop);
-
         if (!insideDoubleSlop) {
             return false;
         }
@@ -132,7 +126,6 @@ public class Navigator {
         }
 
         if ((secondDown.getEventTime() - firstUp.getEventTime()) > doubleTapTimeout) {
-            Log.d(TAG, "  FALSE - Took too long");
             return false;
         }
 
@@ -217,21 +210,11 @@ public class Navigator {
             tapHandler.removeMessages(TAP);
         }
 
-        Log.d(TAG, "onMotionDoubleTap()");
-        Log.d(TAG, "  .hasTapMessage = " + hadTapMessage);
-        Log.d(TAG, "  .curDownEvent  = " + curDownEvent);
-        Log.d(TAG, "  .prevUpEvent   = " + prevUpEvent);
-
-        boolean doubletap = isDoubleTap(curDownEvent, prevUpEvent, ev);
-        Log.d(TAG, "  .isDoubleTap() = " + doubletap);
-
-        if (hadTapMessage && doubletap) {
-            Log.d(TAG, "  is Double Tapping");
+        if (hadTapMessage && isDoubleTap(curDownEvent, prevUpEvent, ev)) {
             // Second Tap
             isDoubleTapping = true;
             return listener.onDoubleTap(curDownEvent);
         } else {
-            Log.d(TAG, "  Normal Tap");
             // Normal Tap
             tapHandler.sendEmptyMessageDelayed(TAP, doubleTapTimeout);
         }
@@ -294,24 +277,19 @@ public class Navigator {
         handled |= listener.onTouchUp(ev);
 
         if (isDoubleTapping) {
-            Log.d(TAG, "is double tapping");
             handled |= listener.onDoubleTap(ev);
         } else if (inLongPress) {
-            Log.d(TAG, "is long press");
             tapHandler.removeMessages(TAP);
             inLongPress = false;
         } else if (insideSlop) {
-            Log.d(TAG, "is inside slop");
             handled |= listener.onTap(ev);
         } else {
-            Log.d(TAG, "is flick?");
             // Set pixels per second velocity calculation
             velocityTracker.computeCurrentVelocity(1000, flickMaxVelocity);
             float velocityX = velocityTracker.getXVelocity();
             float velocityY = velocityTracker.getYVelocity();
 
             if (isFling(velocityX) || isFling(velocityY)) {
-                Log.d(TAG, "is flick!");
                 // We have a fling!
                 Dir dir = Dir.asDir(velocityX, (-1) * velocityY);
                 handled |= listener.onFlick(curDownEvent, ev, dir, velocityX, velocityY);
@@ -341,12 +319,14 @@ public class Navigator {
     }
 
     private boolean onMultiMotionDown(MotionEvent ev) {
-        // TODO Auto-generated method stub
+        Log.i(TAG, "Multi Motion Down : " + ev);
+        
         return false;
     }
 
     private boolean onMultiMotionUp(MotionEvent ev) {
-        // TODO Auto-generated method stub
+        Log.i(TAG, "Multi Motion Up : " + ev);
+
         return false;
     }
 
