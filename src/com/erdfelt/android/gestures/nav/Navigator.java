@@ -1,6 +1,7 @@
 package com.erdfelt.android.gestures.nav;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -59,7 +60,9 @@ public class Navigator {
     private boolean              inLongPress     = false;
     private boolean              isDoubleTapping = false;
     private Handler              tapHandler;
+    private boolean              inMultitouch    = false;
 
+    /* ViewConfiguration values */
     private int                  touchSlop;
     private int                  touchSlopSquare;
     private int                  doubleTapSlop;
@@ -177,6 +180,23 @@ public class Navigator {
         return false;
     }
 
+    private boolean onMotionDoubleTap(final MotionEvent ev) {
+        boolean hadTapMessage = tapHandler.hasMessages(TAP);
+        if (hadTapMessage) {
+            tapHandler.removeMessages(TAP);
+        }
+
+        if (hadTapMessage && isDoubleTap(curDownEvent, prevUpEvent, ev)) {
+            // Second Tap
+            isDoubleTapping = true;
+            return listener.onDoubleTap(curDownEvent);
+        } else {
+            // Normal Tap
+            tapHandler.sendEmptyMessageDelayed(TAP, doubleTapTimeout);
+        }
+        return false;
+    }
+
     private boolean onMotionDown(final MotionEvent ev) {
         boolean handled = false;
         Log.d(TAG, "onMotionDown()");
@@ -204,23 +224,6 @@ public class Navigator {
         return handled;
     }
 
-    private boolean onMotionDoubleTap(final MotionEvent ev) {
-        boolean hadTapMessage = tapHandler.hasMessages(TAP);
-        if (hadTapMessage) {
-            tapHandler.removeMessages(TAP);
-        }
-
-        if (hadTapMessage && isDoubleTap(curDownEvent, prevUpEvent, ev)) {
-            // Second Tap
-            isDoubleTapping = true;
-            return listener.onDoubleTap(curDownEvent);
-        } else {
-            // Normal Tap
-            tapHandler.sendEmptyMessageDelayed(TAP, doubleTapTimeout);
-        }
-        return false;
-    }
-
     private boolean onMotionMove(final MotionEvent ev) {
         if (inLongPress) {
             return false;
@@ -236,7 +239,7 @@ public class Navigator {
         if(!hasMotion) {
             return false;
         }
-
+        
         Log.d(TAG, "onMotionMove()");
 
         if (isDoubleTapping) {
@@ -318,16 +321,42 @@ public class Navigator {
         return handled;
     }
 
-    private boolean onMultiMotionDown(MotionEvent ev) {
-        Log.i(TAG, "Multi Motion Down : " + ev);
-        
-        return false;
+    private boolean onMultitouchDown(MotionEvent ev) {
+        Log.i(TAG, "MULTITOUCH Down : " + ev);
+        inMultitouch = true;
+
+        return true;
+    }
+    
+    private String coords(MotionEvent ev, int index) {
+        return String.format("[%d] %.1fx%.1f", index, ev.getX(index), ev.getY(index));
     }
 
-    private boolean onMultiMotionUp(MotionEvent ev) {
-        Log.i(TAG, "Multi Motion Up : " + ev);
+    private boolean onMultitouchMove(MotionEvent ev) {
+        Log.i(TAG, "MULTITOUCH Move : " + coords(ev, 0) + ", " + coords(ev, 1));
+        
+        tapHandler.removeMessages(TAP);
+        tapHandler.removeMessages(SHOW_PRESS);
+        tapHandler.removeMessages(LONG_PRESS);
 
-        return false;
+        boolean handled = false;
+        
+        Point center = new Point();
+        float x = ((ev.getX(1) - ev.getX(0)) / 2) + ev.getX(0);
+        float y = ((ev.getY(1) - ev.getY(0)) / 2) + ev.getY(0);
+        center.x = (int) x;
+        center.y = (int) y;
+        
+        listener.onSpread(ev, center);
+        
+        return handled;
+    }
+
+    private boolean onMultitouchUp(MotionEvent ev) {
+        Log.i(TAG, "MULTITOUCH Up : " + ev);
+        inMultitouch = false;
+
+        return true;
     }
 
     public boolean onTouchEvent(final MotionEvent ev) {
@@ -338,13 +367,18 @@ public class Navigator {
 
         switch (ev.getAction()) {
             case MotionEvent.ACTION_POINTER_DOWN:
-                return onMultiMotionDown(ev);
+                return onMultitouchDown(ev);
             case MotionEvent.ACTION_POINTER_UP:
-                return onMultiMotionUp(ev);
+                return onMultitouchUp(ev);
             case MotionEvent.ACTION_DOWN:
                 return onMotionDown(ev);
             case MotionEvent.ACTION_MOVE:
-                return onMotionMove(ev);
+                inMultitouch |= (ev.getPointerCount() > 1);
+                if(inMultitouch) {
+                    return onMultitouchMove(ev);
+                } else {
+                    return onMotionMove(ev);
+                }
             case MotionEvent.ACTION_UP:
                 return onMotionUp(ev);
             case MotionEvent.ACTION_CANCEL:
@@ -355,6 +389,7 @@ public class Navigator {
     }
 
     public boolean onTrackballEvent(MotionEvent event) {
+        Log.i(TAG, "Trackball Event: " + event);
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
                 onMotionUp(event);

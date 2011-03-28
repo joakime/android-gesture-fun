@@ -15,9 +15,9 @@ public interface OnNavListener {
      */
     void onCursorSelect();
 
-    void onPinch(Point fingerA, Point fingerB, Point center);
+    boolean onPinch(MotionEvent multi, Point center);
 
-    void onSpread(Point fingerA, Point fingerB, Point center);
+    boolean onSpread(MotionEvent multi, Point center);
 
     boolean onDrag(MotionEvent dragStart, MotionEvent dragNow, Dir dir);
 
