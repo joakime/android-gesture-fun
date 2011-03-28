@@ -1,5 +1,7 @@
 package com.erdfelt.android.gestures;
 
+import com.erdfelt.android.gestures.nav.Dir;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -165,28 +167,28 @@ public class GestureDebugView extends View implements OnGestureListener {
         canvas.drawRect(0, 0, getWidth(), getHeight(), backgroundPaint);
 
         switch (activeDir) {
-            case E:
+            case EAST:
                 canvas.drawPath(pathE, highlightPaint);
                 break;
-            case W:
+            case WEST:
                 canvas.drawPath(pathW, highlightPaint);
                 break;
-            case NE:
+            case NORTH_EAST:
                 canvas.drawPath(pathNE, highlightPaint);
                 break;
-            case NW:
+            case NORTH_WEST:
                 canvas.drawPath(pathNW, highlightPaint);
                 break;
-            case SE:
+            case SOUTH_EAST:
                 canvas.drawPath(pathSE, highlightPaint);
                 break;
-            case SW:
+            case SOUTH_WEST:
                 canvas.drawPath(pathSW, highlightPaint);
                 break;
-            case N:
+            case NORTH:
                 canvas.drawPath(pathN, highlightPaint);
                 break;
-            case S:
+            case SOUTH:
                 canvas.drawPath(pathS, highlightPaint);
                 break;
         }
@@ -239,7 +241,7 @@ public class GestureDebugView extends View implements OnGestureListener {
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        // Log.i(TAG, "onScroll(" + dump(e1) + ", " + dump(e2) + ", " + distanceX + ", " + distanceY + ")");
+        Log.i(TAG, "onScroll(" + dump(e1) + ", " + dump(e2) + ", " + distanceX + ", " + distanceY + ")");
         float deltaX = (-1) * (lastPoint.x - e2.getX());
         float deltaY = (lastPoint.y - e2.getY());
         this.activeDir = Dir.asDir(deltaX, deltaY);

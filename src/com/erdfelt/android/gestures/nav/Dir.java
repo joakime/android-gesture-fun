@@ -1,9 +1,9 @@
-package com.erdfelt.android.gestures;
+package com.erdfelt.android.gestures.nav;
 
 public enum Dir {
-    NONE, NW, N, NE, E, SE, S, SW, W;
+    NONE, NORTH_WEST, NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST;
 
-    private static final Dir zones[] = new Dir[] { Dir.E, Dir.NE, Dir.N, Dir.NW, Dir.W, Dir.SW, Dir.S, Dir.SE };
+    private static final Dir zones[] = new Dir[] { Dir.EAST, Dir.NORTH_EAST, Dir.NORTH, Dir.NORTH_WEST, Dir.WEST, Dir.SOUTH_WEST, Dir.SOUTH, Dir.SOUTH_EAST };
 
     public static Dir asDir(double deltaX, double deltaY) {
         double degrees = calcDegrees(deltaX, deltaY);
@@ -12,6 +12,7 @@ public enum Dir {
         if (z == 8) {
             z = 0;
         }
+        // Log.i("Dir", String.format("asDir(%.1f, %.1f) = %.1f degrees = %s", deltaX, deltaY, degrees, zones[z]));
         return zones[z];
     }
 
