@@ -22,6 +22,7 @@ public class NavDebugView extends View implements OnNavListener {
     private DrawDir             drawdir         = new DrawDir();
     private DrawLine            drawdrag        = new DrawLine();
     private DrawTap             drawtap         = new DrawTap();
+    private DrawMulti           drawmulti       = new DrawMulti();
     private Paint               backgroundPaint = new Paint();
     private Point               lastPoint       = new Point();
 
@@ -95,6 +96,7 @@ public class NavDebugView extends View implements OnNavListener {
         drawdir.onDraw(canvas);
         drawdrag.onDraw(canvas);
         drawtap.onDraw(canvas);
+        drawmulti.onDraw(canvas);
     }
 
     @Override
@@ -119,13 +121,6 @@ public class NavDebugView extends View implements OnNavListener {
     }
 
     @Override
-    public boolean onPinch(MotionEvent multi, Point center) {
-        Log.i(TAG, "onPinch(" + multi + ", " + center + ")");
-        // TODO: show pinch
-        return true;
-    }
-
-    @Override
     public void onPress(MotionEvent e) {
         Log.i(TAG, "onPress(" + e + ")");
         // TODO: Show Press?
@@ -138,10 +133,18 @@ public class NavDebugView extends View implements OnNavListener {
     }
 
     @Override
-    public boolean onSpread(MotionEvent multi, Point center) {
-        Log.i(TAG, "onSpread(" + multi + ", " + center + ")");
-        
-        // TODO: show spread?
+    public boolean onMultiMove(MotionEvent multi, Point center) {
+        Log.i(TAG, "onMultiMove(" + multi + ", " + center + ")");
+
+        Point touchA = new Point();
+        touchA.x = (int) multi.getX(0);
+        touchA.y = (int) multi.getY(0);
+        Point touchB = new Point();
+        touchB.x = (int) multi.getX(1);
+        touchB.y = (int) multi.getY(1);
+        drawmulti.setMulti(touchA, touchB, center);
+
+        invalidate();
         return true;
     }
 
@@ -160,6 +163,7 @@ public class NavDebugView extends View implements OnNavListener {
         drawdrag.hide();
         drawdir.hide();
         drawtap.hide();
+        drawmulti.hide();
         updateLastPoint(e);
         invalidate();
         return true;
@@ -172,7 +176,7 @@ public class NavDebugView extends View implements OnNavListener {
     public boolean onTouchEvent(MotionEvent event) {
         return detector.onTouchEvent(event);
     }
-    
+
     /**
      * Pass Keyboard Into Detector
      */
@@ -180,7 +184,7 @@ public class NavDebugView extends View implements OnNavListener {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         return detector.onKeyDown(keyCode, event);
     }
-    
+
     /**
      * Pass Trackball / DPad Into Detector
      */

@@ -20,15 +20,15 @@ public class Navigator {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case SHOW_PRESS:
-                    Log.i(TAG, "msg.what = SHOW_PRESS");
+                    debug("msg.what = SHOW_PRESS");
                     listener.onPress(curDownEvent);
                     break;
                 case LONG_PRESS:
-                    Log.i(TAG, "msg.what = LONG_PRESS");
+                    debug("msg.what = LONG_PRESS");
                     dispatchLongPress();
                     break;
                 case TAP:
-                    Log.i(TAG, "msg.what = TAP");
+                    debug("msg.what = TAP");
                     if (!stillDown) {
                         listener.onTap(curDownEvent);
                     }
@@ -37,41 +37,41 @@ public class Navigator {
         }
     }
 
-    private static final String  TAG             = Navigator.class.getSimpleName();
-    private static final boolean DEBUG           = true;
+    private static final String TAG             = Navigator.class.getSimpleName();
 
     // constants for Message.what used by TapHandler above
-    private static final int     SHOW_PRESS      = 1;
-    private static final int     LONG_PRESS      = 2;
-    private static final int     TAP             = 3;
+    private static final int    SHOW_PRESS      = 1;
+    private static final int    LONG_PRESS      = 2;
+    private static final int    TAP             = 3;
 
+    private static boolean      DEBUG           = false;
     /**
      * Determines speed during touch scrolling
      */
-    private VelocityTracker      velocityTracker;
-    private OnNavListener        listener;
-    private float                lastY;
-    private float                lastX;
-    private boolean              insideSlop;
-    private boolean              insideDoubleSlop;
-    private MotionEvent          curDownEvent;
-    private MotionEvent          prevUpEvent;
-    private boolean              stillDown       = false;
-    private boolean              inLongPress     = false;
-    private boolean              isDoubleTapping = false;
-    private Handler              tapHandler;
-    private boolean              inMultitouch    = false;
+    private VelocityTracker     velocityTracker;
+    private OnNavListener       listener;
+    private float               lastY;
+    private float               lastX;
+    private boolean             insideSlop;
+    private boolean             insideDoubleSlop;
+    private MotionEvent         curDownEvent;
+    private MotionEvent         prevUpEvent;
+    private boolean             stillDown       = false;
+    private boolean             inLongPress     = false;
+    private boolean             isDoubleTapping = false;
+    private Handler             tapHandler;
+    private boolean             inMultitouch    = false;
 
     /* ViewConfiguration values */
-    private int                  touchSlop;
-    private int                  touchSlopSquare;
-    private int                  doubleTapSlop;
-    private int                  doubleTapSlopSquare;
-    private int                  flickMinVelocity;
-    private int                  flickMaxVelocity;
-    private int                  tapTimeout;
-    private int                  doubleTapTimeout;
-    private int                  longPressTimeout;
+    private int                 touchSlop;
+    private int                 touchSlopSquare;
+    private int                 doubleTapSlop;
+    private int                 doubleTapSlopSquare;
+    private int                 flickMinVelocity;
+    private int                 flickMaxVelocity;
+    private int                 tapTimeout;
+    private int                 doubleTapTimeout;
+    private int                 longPressTimeout;
 
     public Navigator(Context context, OnNavListener listener) {
         this.listener = listener;
@@ -101,15 +101,25 @@ public class Navigator {
         doubleTapSlopSquare = doubleTapSlop * doubleTapSlop;
 
         if (DEBUG) {
-            Log.d(TAG, "tapTimeout       = " + tapTimeout);
-            Log.d(TAG, "doubleTapTimeout = " + doubleTapTimeout);
-            Log.d(TAG, "longPressTimeout = " + longPressTimeout);
-            Log.d(TAG, "touchSlop        = " + touchSlop);
-            Log.d(TAG, "doubleTapSlop    = " + doubleTapSlop);
-            Log.d(TAG, "flickMinVelocity = " + flickMinVelocity);
-            Log.d(TAG, "flickMaxVelocity = " + flickMaxVelocity);
-            Log.d(TAG, "touchSlopSquare  = " + touchSlopSquare);
-            Log.d(TAG, "doubleTapSlopSquare = " + doubleTapSlopSquare);
+            debug("tapTimeout          = %d", tapTimeout);
+            debug("doubleTapTimeout    = %d", doubleTapTimeout);
+            debug("longPressTimeout    = %d", longPressTimeout);
+            debug("touchSlop           = %d", touchSlop);
+            debug("doubleTapSlop       = %d", doubleTapSlop);
+            debug("flickMinVelocity    = %d", flickMinVelocity);
+            debug("flickMaxVelocity    = %d", flickMaxVelocity);
+            debug("touchSlopSquare     = %d", touchSlopSquare);
+            debug("doubleTapSlopSquare = %d", doubleTapSlopSquare);
+        }
+    }
+
+    public static void setDebug(boolean enable) {
+        DEBUG = enable;
+    }
+
+    private void debug(String format, Object... args) {
+        if (DEBUG) {
+            Log.d(TAG, String.format(format, args));
         }
     }
 
@@ -199,7 +209,7 @@ public class Navigator {
 
     private boolean onMotionDown(final MotionEvent ev) {
         boolean handled = false;
-        Log.d(TAG, "onMotionDown()");
+        debug("onMotionDown()");
 
         handled |= onMotionDoubleTap(ev);
 
@@ -236,11 +246,11 @@ public class Navigator {
         // Eliminate Noise
         final boolean hasMotion = ((curDownEvent != null) && (Math.abs(scrollX) >= 1) && (Math.abs(scrollY) >= 1));
 
-        if(!hasMotion) {
+        if (!hasMotion) {
             return false;
         }
-        
-        Log.d(TAG, "onMotionMove()");
+
+        debug("onMotionMove()");
 
         if (isDoubleTapping) {
             handled |= listener.onDoubleTap(ev);
@@ -271,7 +281,7 @@ public class Navigator {
     }
 
     private boolean onMotionUp(final MotionEvent ev) {
-        Log.d(TAG, "onMotionUp()");
+        debug("onMotionUp()");
         boolean handled = false;
 
         stillDown = false;
@@ -322,38 +332,40 @@ public class Navigator {
     }
 
     private boolean onMultitouchDown(MotionEvent ev) {
-        Log.i(TAG, "MULTITOUCH Down : " + ev);
+        debug("MULTITOUCH Down : %s", ev);
         inMultitouch = true;
 
         return true;
     }
-    
+
     private String coords(MotionEvent ev, int index) {
         return String.format("[%d] %.1fx%.1f", index, ev.getX(index), ev.getY(index));
     }
 
     private boolean onMultitouchMove(MotionEvent ev) {
-        Log.i(TAG, "MULTITOUCH Move : " + coords(ev, 0) + ", " + coords(ev, 1));
-        
+        if (DEBUG) {
+            debug("MULTITOUCH Move : %s, %s", coords(ev, 0), coords(ev, 1));
+        }
+
         tapHandler.removeMessages(TAP);
         tapHandler.removeMessages(SHOW_PRESS);
         tapHandler.removeMessages(LONG_PRESS);
 
         boolean handled = false;
-        
+
         Point center = new Point();
         float x = ((ev.getX(1) - ev.getX(0)) / 2) + ev.getX(0);
         float y = ((ev.getY(1) - ev.getY(0)) / 2) + ev.getY(0);
         center.x = (int) x;
         center.y = (int) y;
-        
-        listener.onSpread(ev, center);
-        
+
+        listener.onMultiMove(ev, center);
+
         return handled;
     }
 
     private boolean onMultitouchUp(MotionEvent ev) {
-        Log.i(TAG, "MULTITOUCH Up : " + ev);
+        debug("MULTITOUCH Up : %s", ev);
         inMultitouch = false;
 
         return true;
@@ -373,8 +385,8 @@ public class Navigator {
             case MotionEvent.ACTION_DOWN:
                 return onMotionDown(ev);
             case MotionEvent.ACTION_MOVE:
-                inMultitouch |= (ev.getPointerCount() > 1);
-                if(inMultitouch) {
+                inMultitouch = (ev.getPointerCount() > 1);
+                if (inMultitouch) {
                     return onMultitouchMove(ev);
                 } else {
                     return onMotionMove(ev);
@@ -389,7 +401,7 @@ public class Navigator {
     }
 
     public boolean onTrackballEvent(MotionEvent event) {
-        Log.i(TAG, "Trackball Event: " + event);
+        debug("Trackball Event: %s", event);
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
                 onMotionUp(event);
