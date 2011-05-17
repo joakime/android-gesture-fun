@@ -294,9 +294,7 @@ public class Navigator {
         } else if (inLongPress) {
             tapHandler.removeMessages(TAP);
             inLongPress = false;
-        } else if (insideSlop) {
-            handled |= listener.onTap(ev);
-        } else {
+        } else if (!insideSlop) {
             // Set pixels per second velocity calculation
             velocityTracker.computeCurrentVelocity(1000, flickMaxVelocity);
             float velocityX = velocityTracker.getXVelocity();
