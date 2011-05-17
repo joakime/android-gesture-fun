@@ -259,7 +259,9 @@ public class Navigator {
             final int deltaY = (int) (curDownEvent.getY() - ev.getY());
             final int distance = (deltaX * deltaX) + (deltaY * deltaY);
             if (distance > touchSlopSquare) {
-                handled |= listener.onDrag(curDownEvent, ev, Dir.asDir(scrollX, scrollY));
+                float distX = lastX - ev.getX();
+                float distY = lastY - ev.getY();
+                handled |= listener.onDrag(curDownEvent, ev, Dir.asDir(scrollX, scrollY), distX, distY);
                 lastX = ev.getX();
                 lastY = ev.getY();
                 insideSlop = false;
@@ -272,7 +274,9 @@ public class Navigator {
                 insideDoubleSlop = false;
             }
         } else {
-            handled |= listener.onDrag(curDownEvent, ev, Dir.asDir(scrollX, scrollY));
+            float distX = lastX - ev.getX();
+            float distY = lastY - ev.getY();
+            handled |= listener.onDrag(curDownEvent, ev, Dir.asDir(scrollX, scrollY), distX, distY);
             lastX = ev.getX();
             lastY = ev.getY();
         }

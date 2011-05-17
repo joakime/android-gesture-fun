@@ -17,7 +17,7 @@ public interface OnNavListener {
 
     boolean onMultiMove(MotionEvent multi, Point center);
 
-    boolean onDrag(MotionEvent dragStart, MotionEvent dragNow, Dir dir);
+    boolean onDrag(MotionEvent dragStart, MotionEvent dragNow, Dir dir, float deltaX, float deltaY);
 
     boolean onDragUp(MotionEvent dragStart, MotionEvent dragEnd);
 
