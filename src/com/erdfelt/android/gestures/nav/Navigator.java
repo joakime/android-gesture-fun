@@ -253,7 +253,7 @@ public class Navigator {
         debug("onMotionMove()");
 
         if (isDoubleTapping) {
-            handled |= listener.onDoubleTap(ev);
+            /* ignore */
         } else if (insideSlop) {
             final int deltaX = (int) (curDownEvent.getX() - ev.getX());
             final int deltaY = (int) (curDownEvent.getY() - ev.getY());
@@ -294,7 +294,7 @@ public class Navigator {
         handled |= listener.onTouchUp(ev);
 
         if (isDoubleTapping) {
-            handled |= listener.onDoubleTap(ev);
+            /* ignore */
         } else if (inLongPress) {
             tapHandler.removeMessages(TAP);
             inLongPress = false;

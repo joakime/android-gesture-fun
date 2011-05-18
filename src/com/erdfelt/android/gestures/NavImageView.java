@@ -23,7 +23,7 @@ import com.erdfelt.android.gestures.nav.Navigator;
 import com.erdfelt.android.gestures.nav.OnNavListener;
 
 public class NavImageView extends ImageView implements OnNavListener {
-    private static final String TAG        = NavImageView.class.getSimpleName();
+    private static final String TAG = NavImageView.class.getSimpleName();
     private Navigator           detector;
     private Bitmap              bitmap;
     private RectF               bitmapRect;
@@ -110,14 +110,88 @@ public class NavImageView extends ImageView implements OnNavListener {
 
     }
 
+    private static class LastScale {
+        private boolean valid = false;
+        private float   distance;
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public float calcScale(Point center, MotionEvent multi) {
+            float distA = (float) distance(center.x, center.y, multi.getX(0), multi.getY(0));
+            float distB = (float) distance(center.x, center.y, multi.getX(1), multi.getY(1));
+
+            float distN = Math.min(distA, distB);
+            return (distN / distance);
+        }
+
+        public void reset() {
+            this.distance = 0.0f;
+            this.valid = false;
+        }
+
+        public void setScale(Point center, MotionEvent multi) {
+            float distA = (float) distance(center.x, center.y, multi.getX(0), multi.getY(0));
+            float distB = (float) distance(center.x, center.y, multi.getX(1), multi.getY(1));
+
+            distance = Math.min(distA, distB);
+            this.valid = true;
+        }
+
+        private double distance(double x1, double y1, double x2, double y2) {
+            return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+        }
+    }
+
+    private static class LastPoint extends Point {
+        private boolean valid = false;
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public void setPoint(Point point) {
+            super.x = point.x;
+            super.y = point.y;
+            valid = true;
+        }
+
+        public void reset() {
+            super.set(0, 0);
+            valid = false;
+        }
+    }
+
+    private LastPoint lastMultiPoint = new LastPoint();
+    private LastScale lastMultiScale = new LastScale();
+
     @Override
     public boolean onMultiMove(MotionEvent multi, Point center) {
-        // TODO Auto-generated method stub
+        if (lastMultiScale.isValid() && lastMultiPoint.isValid()) {
+            // Perform Scale
+            float scale = lastMultiScale.calcScale(center, multi);
+            if ((scale > 0.01f) || (scale < -0.01f)) {
+                Matrix m = getImageMatrix();
+                float deltaX = lastMultiPoint.x - center.x;
+                float deltaY = lastMultiPoint.y - center.y;
+                m.postTranslate(-deltaX, -deltaY);
+                m.postScale(scale, scale, center.x, center.y);
+                setImageMatrix(m);
+                invalidate();
+            }
+        }
+        lastMultiScale.setScale(center, multi);
+        lastMultiPoint.setPoint(center);
+
         return true;
     }
 
     @Override
     public boolean onDrag(MotionEvent dragStart, MotionEvent dragNow, Dir dir, float distX, float distY) {
+        if (lastMultiPoint.isValid()) {
+            return true;
+        }
         Matrix m = getImageMatrix();
         m.postTranslate(-distX, -distY);
         setImageMatrix(m);
@@ -159,12 +233,20 @@ public class NavImageView extends ImageView implements OnNavListener {
 
     @Override
     public boolean onDoubleTap(MotionEvent motion) {
-        // TODO Auto-generated method stub
+        // Zoom In
+        Matrix m = getImageMatrix();
+        float x = motion.getX();
+        float y = motion.getY();
+        m.postScale(1.20f, 1.20f, x, y);
+
+        setImageMatrix(m);
+        invalidate();
         return true;
     }
 
     @Override
     public boolean onTap(MotionEvent motion) {
+        Log.d(TAG, "onTap()");
         // Recenter to tap point.
         recenter(motion.getX(), motion.getY());
         invalidate();
@@ -182,6 +264,10 @@ public class NavImageView extends ImageView implements OnNavListener {
     @Override
     public boolean onTouchUp(MotionEvent motion) {
         // TODO Auto-generated method stub
+
+        lastMultiPoint.reset();
+        lastMultiScale.reset();
+
         return true;
     }
 
