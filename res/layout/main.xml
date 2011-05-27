@@ -5,7 +5,7 @@
   android:layout_height="fill_parent">
 
   <com.erdfelt.android.gestures.NavDebugView
-    android:id="@+id/debug"
+    android:id="@+id/view"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:layout_margin="5px" />

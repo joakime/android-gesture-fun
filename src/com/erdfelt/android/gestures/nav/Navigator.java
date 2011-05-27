@@ -1,6 +1,7 @@
 package com.erdfelt.android.gestures.nav;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Message;
@@ -44,7 +45,7 @@ public class Navigator {
     private static final int    LONG_PRESS      = 2;
     private static final int    TAP             = 3;
 
-    private static boolean      DEBUG           = false;
+    private static boolean      DEBUG           = true;
     /**
      * Determines speed during touch scrolling
      */
@@ -101,6 +102,24 @@ public class Navigator {
         doubleTapSlopSquare = doubleTapSlop * doubleTapSlop;
 
         if (DEBUG) {
+            Configuration config = context.getResources().getConfiguration();
+            String keyboard = "Unknown";
+            switch(config.keyboard) {
+                case Configuration.KEYBOARD_12KEY: keyboard = "12KEY"; break;
+                case Configuration.KEYBOARD_NOKEYS: keyboard = "NOKEYS"; break;
+                case Configuration.KEYBOARD_QWERTY: keyboard = "QWERTY"; break;
+                case Configuration.KEYBOARD_UNDEFINED: keyboard = "UNDEFINED"; break;
+            }
+            String nav = "Unknown";
+            switch(config.navigation) {
+                case Configuration.NAVIGATION_DPAD: nav = "DPAD"; break;
+                case Configuration.NAVIGATION_NONAV: nav = "NONAV"; break;
+                case Configuration.NAVIGATION_TRACKBALL: nav = "TRACKBALL"; break;
+                case Configuration.NAVIGATION_UNDEFINED: nav = "UNDEFINED"; break;
+                case Configuration.NAVIGATION_WHEEL: nav = "WHEEL"; break;
+            }
+            debug("device.keyboard     = %s", keyboard);
+            debug("device.nav          = %s", nav);
             debug("tapTimeout          = %d", tapTimeout);
             debug("doubleTapTimeout    = %d", doubleTapTimeout);
             debug("longPressTimeout    = %d", longPressTimeout);
@@ -152,7 +171,7 @@ public class Navigator {
         return (velocity > ViewConfiguration.getMinimumFlingVelocity())
                 && (velocity < ViewConfiguration.getMaximumFlingVelocity());
     }
-
+    
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_DPAD_LEFT:
